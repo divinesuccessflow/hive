@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIVE — Where AI Agents Think Together</title>
+    <meta name="description" content="Multi-agent AI collaboration platform. Multiple AI specialists discuss, debate, and design solutions together.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #FFB800;
+            --primary-dark: #E5A600;
+            --secondary: #1A1A2E;
+            --accent: #00D4FF;
+            --dark: #0A0A0F;
+            --darker: #050508;
+            --light: #F0F0F5;
+            --gray: #6B7280;
+            --gradient: linear-gradient(135deg, #FFB800 0%, #FF8C00 100%);
+            --gradient-blue: linear-gradient(135deg, #00D4FF 0%, #0099FF 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--darker);
+            color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hex Pattern Background */
+        .hex-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,184,0,0.03) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(0,212,255,0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(5, 5, 8, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,184,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-hex {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-cta {
+            background: var(--gradient);
+            color: var(--dark);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 184, 0, 0.3);
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 8rem 5% 4rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge {
+            background: rgba(255, 184, 0, 0.1);
+            border: 1px solid rgba(255, 184, 0, 0.3);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            max-width: 900px;
+        }
+
+        .hero h1 .highlight {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            color: var(--gray);
+            max-width: 650px;
+            margin-bottom: 3rem;
+        }
+
+        /* Agent Avatars */
+        .agent-avatars {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .agent-avatar {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .agent-avatar:hover {
+            transform: scale(1.1);
+            border-color: var(--primary);
+            background: rgba(255,184,0,0.1);
+        }
+
+        .agent-avatar::after {
+            content: attr(data-name);
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.7rem;
+            color: var(--gray);
+            white-space: nowrap;
+        }
+
+        /* Email Form */
+        .email-form {
+            display: flex;
+            gap: 0.75rem;
+            max-width: 500px;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-form input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid rgba(255,184,0,0.2);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.03);
+            color: var(--light);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .email-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .email-form button {
+            background: var(--gradient);
+            color: var(--dark);
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .email-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 184, 0, 0.4);
+        }
+
+        /* War Room Demo */
+        .war-room {
+            padding: 6rem 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 1rem;
+        }
+
+        .demo-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .demo-header {
+            background: rgba(255,255,255,0.03);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .demo-title {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .demo-phase {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .demo-body {
+            padding: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .chat-message {
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-avatar {
+            font-size: 1.2rem;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .chat-time {
+            color: var(--gray);
+            font-size: 0.8rem;
+        }
+
+        .chat-text {
+            color: rgba(255,255,255,0.8);
+            padding-left: 2rem;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 6rem 5%;
+            background: rgba(255,255,255,0.01);
+            position: relative;
+            z-index: 1;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .step {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .step:hover {
+            border-color: rgba(255,184,0,0.3);
+            transform: translateY(-5px);
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin: 0 auto 1.5rem;
+        }
+
+        .step h3 {
+            margin-bottom: 0.75rem;
+        }
+
+        .step p {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+
+        /* Agents */
+        .agents {
+            padding: 6rem 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .agent-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .agent-card:hover {
+            border-color: var(--primary);
+            background: rgba(255,184,0,0.05);
+        }
+
+        .agent-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .agent-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .agent-card p {
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+
+        /* Use Cases */
+        .use-cases {
+            padding: 6rem 5%;
+            background: rgba(255,255,255,0.01);
+            position: relative;
+            z-index: 1;
+        }
+
+        .use-cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .use-case {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .use-case h3 {
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .use-case p {
+            color: var(--gray);
+            margin-bottom: 1rem;
+        }
+
+        .use-case .output {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent);
+        }
+
+        /* Pricing */
+        .pricing {
+            padding: 6rem 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .price-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+        }
+
+        .price-card.popular {
+            border-color: var(--primary);
+            background: rgba(255,184,0,0.05);
+            transform: scale(1.05);
+        }
+
+        .price-card .tier {
+            font-size: 0.9rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-card .amount {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-card .amount span {
+            font-size: 1rem;
+            color: var(--gray);
+        }
+
+        .price-card .desc {
+            color: var(--gray);
+            margin-bottom: 2rem;
+        }
+
+        .price-card ul {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .price-card ul li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .price-card ul li::before {
+            content: '⬡';
+            color: var(--primary);
+        }
+
+        .price-btn {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--light);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .price-btn:hover {
+            border-color: var(--primary);
+            background: rgba(255,184,0,0.1);
+        }
+
+        .price-card.popular .price-btn {
+            background: var(--gradient);
+            color: var(--dark);
+            border: none;
+        }
+
+        /* CTA */
+        .cta {
+            padding: 8rem 5%;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 1rem;
+        }
+
+        .cta p {
+            color: var(--gray);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .cta .email-form {
+            margin: 0 auto;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 5%;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+            color: var(--gray);
+            position: relative;
+            z-index: 1;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .email-form {
+                flex-direction: column;
+            }
+            
+            .price-card.popular {
+                transform: scale(1);
+            }
+
+            .agent-avatars {
+                gap: 0.5rem;
+            }
+
+            .agent-avatar {
+                width: 50px;
+                height: 50px;
+            }
+
+            .agent-avatar::after {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hex-bg"></div>
+
+    <nav>
+        <a href="#" class="logo">
+            <div class="logo-hex"></div>
+            HIVE
+        </a>
+        <a href="#waitlist" class="nav-cta">Join Waitlist</a>
+    </nav>
+
+    <section class="hero">
+        <div class="badge">🧠 Multi-Agent AI Collaboration</div>
+        <h1>Where AI Agents <span class="highlight">Think Together</span></h1>
+        <p class="hero-sub">
+            One AI is smart. Multiple AIs debating, challenging, and synthesizing? That's genius. Watch specialized agents collaborate to solve complex problems.
+        </p>
+        
+        <div class="agent-avatars">
+            <div class="agent-avatar" data-name="Strategist">🎯</div>
+            <div class="agent-avatar" data-name="Analyst">📊</div>
+            <div class="agent-avatar" data-name="HR Expert">👥</div>
+            <div class="agent-avatar" data-name="Finance">💰</div>
+            <div class="agent-avatar" data-name="Operations">🔧</div>
+            <div class="agent-avatar" data-name="Devil's Advocate">🎭</div>
+            <div class="agent-avatar" data-name="Synthesizer">📝</div>
+        </div>
+
+        <form class="email-form" id="waitlist">
+            <input type="email" placeholder="Enter your email" required>
+            <button type="submit">Get Early Access →</button>
+        </form>
+        <p style="color: var(--gray); font-size: 0.9rem;">Join 1,247 innovators on the waitlist</p>
+    </section>
+
+    <section class="war-room">
+        <div class="section-header">
+            <h2>Watch AI Agents Collaborate</h2>
+            <p style="color: var(--gray);">A real-time view of multi-agent problem solving</p>
+        </div>
+        <div class="demo-container">
+            <div class="demo-header">
+                <span class="demo-title">🐝 HIVE War Room</span>
+                <span class="demo-phase">Phase 2: Challenge & Debate</span>
+            </div>
+            <div class="demo-body">
+                <div class="chat-message">
+                    <div class="chat-header">
+                        <span class="chat-avatar">🎯</span>
+                        <span class="chat-name">Strategist</span>
+                        <span class="chat-time">10:23 AM</span>
+                    </div>
+                    <div class="chat-text">"For a B2B SaaS at $2M ARR, the CS team should focus on expansion revenue. I recommend a 4-person structure with clear upsell targets..."</div>
+                </div>
+                <div class="chat-message">
+                    <div class="chat-header">
+                        <span class="chat-avatar">🎭</span>
+                        <span class="chat-name">Devil's Advocate</span>
+                        <span class="chat-time">10:24 AM</span>
+                    </div>
+                    <div class="chat-text">"Hold on. You're assuming the current product can support upsells. What if churn is the real issue? Shouldn't we focus on retention first?"</div>
+                </div>
+                <div class="chat-message">
+                    <div class="chat-header">
+                        <span class="chat-avatar">📊</span>
+                        <span class="chat-name">Analyst</span>
+                        <span class="chat-time">10:25 AM</span>
+                    </div>
+                    <div class="chat-text">"Data point: Industry benchmark shows companies at this stage average 85% GRR. If below that, Devil's Advocate is right—retention first."</div>
+                </div>
+                <div class="chat-message">
+                    <div class="chat-header">
+                        <span class="chat-avatar">💰</span>
+                        <span class="chat-name">Finance</span>
+                        <span class="chat-time">10:26 AM</span>
+                    </div>
+                    <div class="chat-text">"Budget-wise, a 4-person team at market rates = ~$400K/year. That's 20% of ARR. Aggressive, but justifiable if NRR exceeds 110%."</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <div class="section-header">
+            <h2>How HIVE Works</h2>
+            <p style="color: var(--gray);">From challenge to comprehensive solution in 5 phases</p>
+        </div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Submit Challenge</h3>
+                <p>Describe your problem or decision in plain language</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Agents Assemble</h3>
+                <p>HIVE selects the right specialist agents for your challenge</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Debate & Challenge</h3>
+                <p>Agents share perspectives, question assumptions, find flaws</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>Build Consensus</h3>
+                <p>Synthesizer integrates insights and resolves contradictions</p>
+            </div>
+            <div class="step">
+                <div class="step-number">5</div>
+                <h3>Get Output</h3>
+                <p>Receive comprehensive solution with dissenting opinions noted</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="agents">
+        <div class="section-header">
+            <h2>Meet the Agents</h2>
+            <p style="color: var(--gray);">Specialized AI personas with distinct expertise and perspectives</p>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card">
+                <div class="agent-icon">🎯</div>
+                <h3>Strategist</h3>
+                <p>Big-picture thinker, connects dots across domains</p>
+            </div>
+            <div class="agent-card">
+                <div class="agent-icon">📊</div>
+                <h3>Analyst</h3>
+                <p>Data-driven, evidence-based, benchmark-focused</p>
+            </div>
+            <div class="agent-card">
+                <div class="agent-icon">🎭</div>
+                <h3>Devil's Advocate</h3>
+                <p>Skeptical, risk-aware, finds flaws and blind spots</p>
+            </div>
+            <div class="agent-card">
+                <div class="agent-icon">👥</div>
+                <h3>HR Expert</h3>
+                <p>Hiring, culture, team dynamics specialist</p>
+            </div>
+            <div class="agent-card">
+                <div class="agent-icon">💰</div>
+                <h3>Finance</h3>
+                <p>Budgets, ROI, cost optimization guru</p>
+            </div>
+            <div class="agent-card">
+                <div class="agent-icon">🔧</div>
+                <h3>Operations</h3>
+                <p>Processes, systems, efficiency master</p>
+            </div>
+            <div class="agent-card">
+                <div class="agent-icon">🚀</div>
+                <h3>Growth</h3>
+                <p>Scaling, marketing, acquisition expert</p>
+            </div>
+            <div class="agent-card">
+                <div class="agent-icon">📝</div>
+                <h3>Synthesizer</h3>
+                <p>Integrates perspectives, creates final output</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="use-cases">
+        <div class="section-header">
+            <h2>What Can HIVE Solve?</h2>
+            <p style="color: var(--gray);">Complex problems that benefit from multiple perspectives</p>
+        </div>
+        <div class="use-cases-grid">
+            <div class="use-case">
+                <h3>🏗️ Team Design</h3>
+                <p>"Design a sales team for our Series A startup"</p>
+                <div class="output">→ Org chart, roles, hiring sequence, budget breakdown</div>
+            </div>
+            <div class="use-case">
+                <h3>⚙️ Process Design</h3>
+                <p>"Create our customer onboarding workflow"</p>
+                <div class="output">→ Process map, SLAs, automation opportunities</div>
+            </div>
+            <div class="use-case">
+                <h3>📈 Strategy Planning</h3>
+                <p>"Go-to-market strategy for new product"</p>
+                <div class="output">→ GTM plan, channels, timeline, budget</div>
+            </div>
+            <div class="use-case">
+                <h3>🔍 Problem Solving</h3>
+                <p>"Why is our churn rate increasing?"</p>
+                <div class="output">→ Root cause analysis, recommendations</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing">
+        <div class="section-header">
+            <h2>Simple Pricing</h2>
+            <p style="color: var(--gray);">Start free, scale as you grow</p>
+        </div>
+        <div class="pricing-grid">
+            <div class="price-card">
+                <div class="tier">Starter</div>
+                <div class="amount">$99<span>/mo</span></div>
+                <div class="desc">For individuals</div>
+                <ul>
+                    <li>10 HIVE sessions/month</li>
+                    <li>Up to 4 agents/session</li>
+                    <li>Standard agents</li>
+                    <li>Text outputs</li>
+                </ul>
+                <button class="price-btn">Get Started</button>
+            </div>
+            <div class="price-card popular">
+                <div class="tier">Professional</div>
+                <div class="amount">$299<span>/mo</span></div>
+                <div class="desc">For teams</div>
+                <ul>
+                    <li>50 HIVE sessions/month</li>
+                    <li>Up to 6 agents/session</li>
+                    <li>All specialist agents</li>
+                    <li>PDF & slide exports</li>
+                    <li>Session history</li>
+                </ul>
+                <button class="price-btn">Get Professional</button>
+            </div>
+            <div class="price-card">
+                <div class="tier">Enterprise</div>
+                <div class="amount">$999<span>/mo</span></div>
+                <div class="desc">For organizations</div>
+                <ul>
+                    <li>Unlimited sessions</li>
+                    <li>Unlimited agents</li>
+                    <li>Custom agents</li>
+                    <li>API access</li>
+                    <li>Dedicated support</li>
+                </ul>
+                <button class="price-btn">Contact Sales</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <h2>Ready for Collective AI Intelligence?</h2>
+        <p>Join the waitlist for early access</p>
+        <form class="email-form">
+            <input type="email" placeholder="Enter your email" required>
+            <button type="submit">Get Early Access →</button>
+        </form>
+    </section>
+
+    <footer>
+        <p>© 2026 HIVE. Where AI Agents Think Together.</p>
+        <p style="margin-top: 0.5rem;">A <a href="https://divineteams.ai">DivineTeams.AI</a> product.</p>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.email-form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button');
+                btn.textContent = '⬡ You\'re on the list!';
+                btn.style.background = '#10B981';
+                setTimeout(() => {
+                    btn.textContent = 'Get Early Access →';
+                    btn.style.background = '';
+                    form.querySelector('input').value = '';
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>
